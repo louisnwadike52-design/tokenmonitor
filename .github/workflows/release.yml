@@ -1,5 +1,6 @@
 # Publishes to npm when a version tag (v*) is pushed.
-# Inert until the NPM_TOKEN repository secret is configured — see CONTRIBUTING.md.
+# Until the NPM_TOKEN repository secret is configured the publish step is
+# skipped (not failed) — see CONTRIBUTING.md.
 name: Release
 
 on:
@@ -23,7 +24,14 @@ jobs:
         run: node --test
       - name: Lint
         run: node scripts/check.mjs
+      - name: Detect npm token
+        id: token
+        run: echo "present=${{ secrets.NPM_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
       - name: Publish to npm
+        if: steps.token.outputs.present == 'true'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Skip publish (no token configured)
+        if: steps.token.outputs.present != 'true'
+        run: echo "NPM_TOKEN not set — skipping npm publish. Add the secret to enable releases."

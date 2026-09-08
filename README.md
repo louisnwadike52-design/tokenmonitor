@@ -12,7 +12,7 @@ token usage and estimated spend across all of them:
 
 | Tool | Logs read | Notes |
 | --- | --- | --- |
-| **Claude Code** | `~/.claude/projects/**/*.jsonl` (honors `$CLAUDE_CONFIG_DIR`) | dedupes resumed sessions; 5m/1h cache-write TTLs priced separately |
+| **Claude Code** | `~/.claude/projects/**/*.jsonl` (`$CLAUDE_CONFIG_DIR` overrides) | dedupes resumed sessions; 5m/1h cache-write TTLs priced separately |
 | **OpenAI Codex CLI** | `$CODEX_HOME/sessions` (default `~/.codex/sessions`) | per-request deltas; cached input priced at the discounted rate |
 | **Gemini CLI** | `$GEMINI_DIR` (default `~/.gemini`) | best-effort scan of session metrics and chat transcripts |
 
@@ -37,6 +37,7 @@ cd tokenmonitor && npm link
 tokenmonitor            # usage by tool + model (default)
 tokenmonitor daily      # usage by day
 tokenmonitor models     # usage by model
+tokenmonitor plans      # list known subscription plans
 ```
 
 ```text
@@ -58,23 +59,46 @@ TOTAL       18,228  6,176,161  4,587,741,883   53,574,045  4,647,510,317     $3,
 | --- | --- |
 | `--since <YYYY-MM-DD>` / `--until <YYYY-MM-DD>` | date range filter |
 | `--tool <claude\|codex\|gemini>` | limit to one tool |
-| `--json` | machine-readable output (rows + totals) |
+| `--plan <id>` | compare usage against a subscription plan (see below) |
+| `--json` | machine-readable output (rows + totals + plan) |
 | `--no-color` | disable ANSI styling (also honors `NO_COLOR`) |
 | `-h, --help` / `-v, --version` | help / version |
 
-## How costs are estimated
+## Tokens vs. cost — read this
 
-Costs are computed from each vendor's **public API list prices** (USD per million tokens):
+**Token counts are exact** — read straight from each tool's log fields, deduplicated
+so nothing is counted twice. The methodology matches [ccusage](https://ccusage.com/guide/cost-modes),
+the established Claude Code cost tool. See [PRICING.md](PRICING.md) for the precise fields.
+
+**"Est. Cost" is the pay-as-you-go API list price** of that usage:
 
 ```text
-input×Pin + output×Pout + cacheRead×Pread + cacheWrite5m×Pin×1.25 + cacheWrite1h×Pin×2
+input×Pin + output×Pout + cacheRead×Pin×0.1 + cacheWrite5m×Pin×1.25 + cacheWrite1h×Pin×2
 ```
 
-- If you pay per token via API keys, this approximates your bill.
-- If you're on a subscription (Claude Max, ChatGPT Plus, Gemini free tier), it shows
-  what your usage *would* cost at API rates — useful for judging the plan's value.
-- Models missing from the pricing table show `—` and are footnoted, never mispriced.
-- Prices live in [`src/pricing.js`](src/pricing.js) — pricing-update PRs are very welcome.
+- Pay per token via **API keys**? This approximates your bill.
+- On a **subscription** (Claude Pro/Max, ChatGPT Plus/Pro, Google AI Pro/Ultra)? You
+  pay a flat monthly fee, **not** this number — it's what the usage *would* cost at API
+  rates. Heavy users routinely rack up many multiples of their plan fee in API-equivalent
+  value; that's the point of a subscription. Use `--plan` to see the comparison.
+- Models with no known price show `—` and are footnoted — **never** mispriced.
+
+### Subscription comparison
+
+```text
+$ tokenmonitor --plan claude-max-20x
+
+...usage table...
+
+Subscription check — Claude Max 20x
+  Plan fee:         $200.00/mo × 2 mo = $400.00
+  API-equivalent:   $22,995.50  (claude usage)
+  Effective value:  57.5× your subscription
+  → Your plan covers this; the same usage would cost more at API rates.
+```
+
+`tokenmonitor plans` lists every known plan id. Prices (with sources) live in
+[`src/plans.js`](src/plans.js) and [PRICING.md](PRICING.md).
 
 ### Custom pricing
 
@@ -90,6 +114,21 @@ prices are USD per million tokens:
 ```
 
 Optional per-entry fields: `cacheRead`, `cacheWrite5m`, `cacheWrite1h`.
+
+## Use as a library
+
+`tokenmonitor` is also a zero-dependency ES module:
+
+```js
+import { collectUsage, aggregate, totalsOf } from "tokenmonitor";
+
+const records = await collectUsage();               // priced usage records
+const daily = aggregate(records, { groupBy: "date" });
+console.log(totalsOf(daily));
+```
+
+Also exported: `costOf`, `resolvePricing`, `PRICING`, `PLANS`, `planSummary`,
+`renderReport`, and the `adapters` registry. See [`src/index.js`](src/index.js).
 
 ## Privacy
 
@@ -108,6 +147,7 @@ Adding support for a new AI CLI is a single ~80-line adapter file — see
 - npm release (`npm i -g tokenmonitor`)
 - `--watch` live mode
 - More adapters: Cursor CLI, Copilot CLI, Aider
+- Per-request server-tool (web search) surcharges
 - Budgets and alerts
 
 ## License

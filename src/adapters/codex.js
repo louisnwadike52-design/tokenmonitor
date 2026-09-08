@@ -26,8 +26,10 @@ async function* parseSession(file) {
   for await (const line of jsonlObjects(file)) {
     const payload = line?.payload;
     if (!payload || typeof payload !== "object") continue;
-    // `turn_context` (and `session_meta`) events name the model in use.
-    if (typeof payload.model === "string" && payload.model) model = payload.model;
+    // `turn_context` / `session_meta` events name the model; the field has
+    // moved around across Codex versions, so check the known locations.
+    const named = payload.model ?? payload.turn_context?.model ?? payload.info?.model;
+    if (typeof named === "string" && named) model = named;
     if (payload.type !== "token_count" || !payload.info) continue;
     const date = String(line.timestamp ?? "").slice(0, 10);
     const delta = payload.info.last_token_usage;

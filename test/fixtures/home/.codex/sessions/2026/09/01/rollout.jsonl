@@ -1,0 +1,2 @@
+{"timestamp":"2026-09-01T09:00:00.000Z","type":"turn_context","payload":{"model":"gpt-5-codex"}}
+{"timestamp":"2026-09-01T09:01:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":800,"cached_input_tokens":300,"output_tokens":150,"total_tokens":950}}}}

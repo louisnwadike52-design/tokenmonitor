@@ -7,18 +7,19 @@ export function emptyUsage() {
   return { input: 0, output: 0, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 };
 }
 
-/** Adds `extra` into `target` in place and returns `target`. */
+/** Adds `extra` into `target` in place, coercing values to numbers. */
 export function addUsage(target, extra) {
-  for (const key of Object.keys(target)) target[key] += extra[key] ?? 0;
+  for (const key of Object.keys(target)) target[key] += Number(extra[key]) || 0;
   return target;
 }
 
+/** Sum of every token category in a usage record. */
 export function totalTokens(usage) {
   return (
-    usage.input +
-    usage.output +
-    usage.cacheRead +
-    usage.cacheWrite5m +
-    usage.cacheWrite1h
+    (Number(usage.input) || 0) +
+    (Number(usage.output) || 0) +
+    (Number(usage.cacheRead) || 0) +
+    (Number(usage.cacheWrite5m) || 0) +
+    (Number(usage.cacheWrite1h) || 0)
   );
 }

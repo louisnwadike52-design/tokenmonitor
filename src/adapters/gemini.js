@@ -33,9 +33,10 @@ async function mtimeDate(file) {
   }
 }
 
-function* extract(node, model, date) {
+function* extract(node, model, date, depth = 0) {
+  if (depth > 24) return; // guard against pathologically nested JSON
   if (Array.isArray(node)) {
-    for (const item of node) yield* extract(item, model, date);
+    for (const item of node) yield* extract(item, model, date, depth + 1);
     return;
   }
   if (node === null || typeof node !== "object") return;
@@ -49,7 +50,7 @@ function* extract(node, model, date) {
   for (const [key, value] of Object.entries(node)) {
     if (TOKEN_KEYS.includes(key) || value === null || typeof value !== "object") continue;
     // In session metrics, per-model stats are keyed by the model id itself.
-    yield* extract(value, /^gemini/i.test(key) ? key : ownModel, ownDate);
+    yield* extract(value, /^gemini/i.test(key) ? key : ownModel, ownDate, depth + 1);
   }
 }
 

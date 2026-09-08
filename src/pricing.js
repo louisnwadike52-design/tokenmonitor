@@ -1,12 +1,14 @@
 /**
- * Prices in USD per 1,000,000 tokens. Community-maintained estimates — verify
- * against vendor pricing pages before using for billing decisions.
+ * Prices in USD per 1,000,000 tokens — published API list prices, current as of
+ * 2026-09 (sources in PRICING.md). This is the pay-as-you-go rate; subscription
+ * users pay a flat fee instead (see src/plans.js). Update by PR when prices
+ * change — cite the vendor page in the PR.
  *
  * Lookup is longest-prefix match on the normalized model id, so date-suffixed
  * ids resolve naturally ("claude-opus-4-5-20251101" matches "claude-opus-4-5").
  * Unknown models cost `null` — tokens are still counted, never mispriced.
  *
- * Vendor cache billing baked into the helpers:
+ * Vendor cache billing baked into the helpers (matches ccusage's methodology):
  *   anthropic: cache read ×0.1, cache write ×1.25 (5m TTL) / ×2 (1h TTL)
  *   openai:    cached input ×0.1, no write premium
  *   google:    implicit-cache reads ×0.25, no write premium

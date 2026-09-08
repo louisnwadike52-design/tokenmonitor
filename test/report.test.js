@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatCost, renderReport } from "../src/report.js";
+import { formatCost, renderPlanList, renderPlanSummary, renderReport } from "../src/report.js";
+import { PLANS } from "../src/plans.js";
 
 const usage = { input: 1500, output: 200, cacheRead: 10000, cacheWrite5m: 300, cacheWrite1h: 0 };
 const rows = [
@@ -19,6 +20,12 @@ test("renders an aligned table with headers, formatted numbers, and totals", () 
   assert.doesNotMatch(out, /\x1b\[/); // no ANSI when color is off
 });
 
+test("always footnotes that the cost is an API-rate estimate", () => {
+  const out = renderReport(rows, totals, { groupBy: "tool-model", color: false });
+  assert.match(out, /pay-as-you-go API list price/);
+  assert.match(out, /subscription/);
+});
+
 test("adds a footnote when totals include unpriced usage", () => {
   const flagged = { ...totals, unpriced: true };
   const out = renderReport(rows, flagged, { groupBy: "tool-model", color: false });
@@ -29,4 +36,31 @@ test("formatCost covers unpriced, starred, and large values", () => {
   assert.equal(formatCost({ cost: 0, unpriced: true }), "—");
   assert.equal(formatCost({ cost: 3.5, unpriced: true }), "$3.50*");
   assert.equal(formatCost({ cost: 5000, unpriced: false }), "$5,000");
+});
+
+test("renderPlanSummary reports fee, API-equivalent, and value multiple", () => {
+  const out = renderPlanSummary(PLANS["claude-max-20x"], {
+    months: 2,
+    fee: 400,
+    api: 22892,
+    ratio: 57.23,
+    count: 3,
+    unpriced: false,
+  });
+  assert.match(out, /Claude Max 20x/);
+  assert.match(out, /\$400\.00/);
+  assert.match(out, /\$22,892\.00/);
+  assert.match(out, /57\.2× your subscription/);
+});
+
+test("renderPlanSummary handles no matching usage", () => {
+  const out = renderPlanSummary(PLANS["gemini-pro"], { count: 0 });
+  assert.match(out, /no gemini usage in range/);
+});
+
+test("renderPlanList lists every known plan", () => {
+  const out = renderPlanList(PLANS);
+  assert.match(out, /claude-max-20x/);
+  assert.match(out, /Google AI Ultra/);
+  assert.match(out, /\$200\.00\/mo/);
 });

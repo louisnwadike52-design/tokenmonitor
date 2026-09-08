@@ -2,11 +2,13 @@ import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { adapters } from "./adapters/index.js";
 import { aggregate, totalsOf } from "./aggregate.js";
-import { loadUserPricing, resolvePaths } from "./config.js";
-import { costOf } from "./pricing.js";
-import { renderReport } from "./report.js";
+import { collectUsage } from "./collect.js";
+import { PLANS, planSummary } from "./plans.js";
+import { renderPlanList, renderPlanSummary, renderReport } from "./report.js";
 
-const COMMANDS = { summary: "tool-model", daily: "date", models: "model" };
+const GROUPS = { summary: "tool-model", daily: "date", models: "model" };
+const TOOLS = adapters.map((a) => a.name).join(", ");
+const PLAN_IDS = Object.keys(PLANS).join(", ");
 
 const HELP = `tokenmonitor — token usage & estimated spend across AI coding CLIs
 
@@ -16,20 +18,26 @@ Commands:
   summary   usage grouped by tool and model (default)
   daily     usage grouped by day
   models    usage grouped by model
+  plans     list known subscription plans
 
 Options:
   --since <YYYY-MM-DD>  only include usage on or after this date
   --until <YYYY-MM-DD>  only include usage on or before this date
-  --tool <name>         limit to one tool: ${adapters.map((a) => a.name).join(", ")}
+  --tool <name>         limit to one tool: ${TOOLS}
+  --plan <id>           compare usage against a subscription plan (see: plans)
   --json                machine-readable output
   --no-color            disable ANSI styling
   -h, --help            show this help
-  -v, --version         show the version`;
+  -v, --version         show the version
+
+Cost is ESTIMATED at pay-as-you-go API list prices. On a subscription you pay a
+flat fee instead — use --plan to see your usage against your plan.`;
 
 const OPTIONS = {
   since: { type: "string" },
   until: { type: "string" },
   tool: { type: "string" },
+  plan: { type: "string" },
   json: { type: "boolean" },
   "no-color": { type: "boolean" },
   help: { type: "boolean", short: "h" },
@@ -41,49 +49,36 @@ export async function run(argv) {
   try {
     parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true });
   } catch (error) {
-    console.error(`${error.message}\nRun "tokenmonitor --help" for usage.`);
-    return 2;
+    return fail(error.message);
   }
   const { values, positionals } = parsed;
   if (values.help) return print(HELP);
   if (values.version) return print(version());
+  if (positionals[0] === "plans") return print(renderPlanList(PLANS));
 
-  const groupBy = COMMANDS[positionals[0] ?? "summary"];
+  const groupBy = GROUPS[positionals[0] ?? "summary"];
   const invalid = validate(values, positionals, groupBy);
-  if (invalid) {
-    console.error(`${invalid}\nRun "tokenmonitor --help" for usage.`);
-    return 2;
-  }
+  if (invalid) return fail(invalid);
 
-  const records = await collectRecords(values.tool, await loadUserPricing());
+  const records = await collectUsage({
+    tool: values.tool,
+    onWarn: (message) => console.error(`warning: ${message}`),
+  });
   const rows = aggregate(records, { ...values, groupBy });
+  const plan = values.plan ? PLANS[values.plan] : null;
+  const summary = plan ? planSummary(records, plan, values) : null;
+
   if (values.json) {
-    return print(JSON.stringify({ rows, totals: totalsOf(rows) }, null, 2));
+    const payload = { rows, totals: totalsOf(rows) };
+    if (plan) payload.plan = { id: values.plan, ...plan, ...summary };
+    return print(JSON.stringify(payload, null, 2));
   }
   if (rows.length === 0) {
-    return print("No usage found. Supported logs: " +
-      adapters.map((a) => a.name).join(", ") + " (see README for locations).");
+    return print(`No usage found. Supported tools: ${TOOLS} (see README for log locations).`);
   }
-  return print(renderReport(rows, totalsOf(rows), { groupBy, color: useColor(values) }));
-}
-
-async function collectRecords(tool, pricingOverrides) {
-  const paths = resolvePaths();
-  const records = [];
-  const active = adapters.filter((a) => !tool || a.name === tool);
-  await Promise.all(
-    active.map(async (adapter) => {
-      try {
-        for await (const record of adapter.collect(paths)) {
-          record.cost = costOf(record.model, record.usage, pricingOverrides);
-          records.push(record);
-        }
-      } catch (error) {
-        console.error(`warning: ${adapter.name} adapter failed: ${error.message}`);
-      }
-    }),
-  );
-  return records;
+  let out = renderReport(rows, totalsOf(rows), { groupBy, color: useColor(values) });
+  if (plan) out += `\n\n${renderPlanSummary(plan, summary)}`;
+  return print(out);
 }
 
 function validate(values, positionals, groupBy) {
@@ -95,7 +90,10 @@ function validate(values, positionals, groupBy) {
     }
   }
   if (values.tool && !adapters.some((a) => a.name === values.tool)) {
-    return `Unknown tool "${values.tool}".`;
+    return `Unknown tool "${values.tool}". Valid: ${TOOLS}.`;
+  }
+  if (values.plan && !PLANS[values.plan]) {
+    return `Unknown plan "${values.plan}". Valid: ${PLAN_IDS}.`;
   }
   return null;
 }
@@ -107,6 +105,11 @@ function useColor(values) {
 function version() {
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url)));
   return `tokenmonitor v${pkg.version}`;
+}
+
+function fail(message) {
+  console.error(`${message}\nRun "tokenmonitor --help" for usage.`);
+  return 2;
 }
 
 function print(text) {

@@ -5,17 +5,17 @@ import { readJsonFile } from "./fsx.js";
 
 /**
  * Resolves the log directories of every supported AI CLI, honoring the same
- * environment variables the tools themselves use. Only directories that exist
- * are returned, so adapters never need to probe the filesystem blindly.
+ * environment variables the tools themselves use. When a tool's env override
+ * is set it REPLACES the defaults (matching each CLI's own behavior), so
+ * pointing at a scratch directory fully isolates a run. Only directories that
+ * exist are returned, so adapters never probe blindly.
  */
 export function resolvePaths(env = process.env, home = homedir()) {
-  const claudeRoots = [
-    env.CLAUDE_CONFIG_DIR,
-    join(home, ".claude"),
-    join(home, ".config", "claude"),
-  ];
+  const claudeRoots = env.CLAUDE_CONFIG_DIR
+    ? [env.CLAUDE_CONFIG_DIR]
+    : [join(home, ".claude"), join(home, ".config", "claude")];
   return {
-    claudeProjects: existing(claudeRoots.filter(Boolean).map((r) => join(r, "projects"))),
+    claudeProjects: existing(claudeRoots.map((root) => join(root, "projects"))),
     codexSessions: existing([join(env.CODEX_HOME ?? join(home, ".codex"), "sessions")]),
     geminiDirs: existing([env.GEMINI_DIR ?? join(home, ".gemini")]),
   };
