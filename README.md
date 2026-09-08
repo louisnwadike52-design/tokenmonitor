@@ -1,5 +1,6 @@
 # tokenmonitor
 
+[![npm version](https://img.shields.io/npm/v/tokenmonitor.svg)](https://www.npmjs.com/package/tokenmonitor)
 [![CI](https://github.com/louisnwadike52-design/tokenmonitor/actions/workflows/ci.yml/badge.svg)](https://github.com/louisnwadike52-design/tokenmonitor/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)

@@ -58,7 +58,11 @@ change affects a tested model.
 
 ## Releasing (maintainers)
 
-1. Bump `version` in `package.json`, update `CHANGELOG.md`.
-2. `git tag vX.Y.Z && git push --tags`.
-3. The `Release` workflow tests and publishes to npm with provenance.
-   It requires the `NPM_TOKEN` repository secret (an npm automation token).
+Publishing is automated by GitHub Actions on a `v*` tag. Full instructions —
+including the one-time npm authentication setup (automation token or Trusted
+Publishing / OIDC) — are in [RELEASING.md](RELEASING.md). The short version:
+
+```sh
+npm version patch      # bumps package.json, commits, tags
+git push --follow-tags # triggers the Release workflow → npm publish + provenance
+```
