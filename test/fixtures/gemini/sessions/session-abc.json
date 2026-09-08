@@ -1,0 +1,19 @@
+{
+  "sessionId": "abc",
+  "startTime": "2026-09-03T12:00:00.000Z",
+  "metrics": {
+    "models": {
+      "gemini-2.5-pro": {
+        "api": { "totalRequests": 4, "totalErrors": 0 },
+        "tokens": {
+          "prompt": 5000,
+          "candidates": 900,
+          "total": 6200,
+          "cached": 1200,
+          "thoughts": 300,
+          "tool": 0
+        }
+      }
+    }
+  }
+}

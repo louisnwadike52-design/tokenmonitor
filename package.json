@@ -1,0 +1,45 @@
+{
+  "name": "tokenmonitor",
+  "version": "0.1.0",
+  "description": "Track token usage and estimated spend across AI coding CLIs (Claude Code, Codex CLI, Gemini CLI) — 100% local, zero dependencies.",
+  "keywords": [
+    "ai",
+    "cli",
+    "tokens",
+    "usage",
+    "cost",
+    "claude-code",
+    "codex",
+    "gemini",
+    "llm"
+  ],
+  "license": "MIT",
+  "author": "Louis Nwadike <thenwadikelouis@gmail.com>",
+  "type": "module",
+  "bin": {
+    "tokenmonitor": "bin/tokenmonitor.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node scripts/check.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/louisnwadike52-design/tokenmonitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/louisnwadike52-design/tokenmonitor/issues"
+  },
+  "homepage": "https://github.com/louisnwadike52-design/tokenmonitor#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

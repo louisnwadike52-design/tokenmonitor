@@ -1,0 +1,16 @@
+{
+  "messages": [
+    { "role": "user", "content": "hello" },
+    {
+      "role": "model",
+      "model": "gemini-2.5-flash",
+      "timestamp": "2026-09-04T01:02:03.000Z",
+      "usageMetadata": {
+        "promptTokenCount": 100,
+        "candidatesTokenCount": 20,
+        "thoughtsTokenCount": 5,
+        "cachedContentTokenCount": 30
+      }
+    }
+  ]
+}
