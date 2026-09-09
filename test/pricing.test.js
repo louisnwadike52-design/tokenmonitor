@@ -39,3 +39,11 @@ test("user overrides beat the built-in table", () => {
   assert.equal(costOf("mystery-model-9000", inputOnly, overrides), 1);
   assert.equal(costOf("claude-opus-4-8", inputOnly, { "claude-opus-4-8": { input: 9, output: 9 } }), 9);
 });
+
+test("sibling model ids do not inherit a prefix model's price", () => {
+  // o3-pro is a real, separately priced model ($20/$80 per OpenAI's pricing
+  // page, vs o3's $2/$8). It must resolve to null rather than silently
+  // inheriting o3's rate — a 10x undercount.
+  assert.equal(resolvePricing("o3-pro"), null);
+  assert.equal(costOf("o3-pro", inputOnly), null);
+});

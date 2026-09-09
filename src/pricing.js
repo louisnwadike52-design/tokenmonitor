@@ -75,15 +75,22 @@ export function normalizeModel(model) {
     .replace(/^(us\.|eu\.)?(anthropic|openai|google)[./]/, "");
 }
 
-/** Longest-prefix match against PRICING merged with `overrides`; null if none. */
+/**
+ * Longest-prefix match against PRICING merged with `overrides`; null if none.
+ * A prefix only applies when the remainder is a date/version suffix (hyphens
+ * and digits only): "claude-opus-4-5-20251101" resolves to "claude-opus-4-5",
+ * but a sibling id like "o3-pro" must not silently inherit "o3"'s price —
+ * unknown models stay `null` so their cost is never fabricated.
+ */
 export function resolvePricing(model, overrides = {}) {
   const id = normalizeModel(model);
   const table = { ...PRICING, ...overrides };
   let best = null;
   for (const prefix of Object.keys(table)) {
-    if (id.startsWith(prefix) && (best === null || prefix.length > best.length)) {
-      best = prefix;
-    }
+    if (!id.startsWith(prefix)) continue;
+    if (best !== null && prefix.length <= best.length) continue;
+    if (!/^[-\d]*$/.test(id.slice(prefix.length))) continue;
+    best = prefix;
   }
   return best === null ? null : table[best];
 }
