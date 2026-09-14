@@ -4,11 +4,19 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-09-14
+
+### Changed
+
+- Published to npm under the scoped name `@louisnwadike/tokenmonitor`. The
+  unscoped name `tokenmonitor` is blocked by npm as too similar to an unrelated
+  existing package; the installed command is still `tokenmonitor`.
+
 ## [0.2.1] - 2026-09-14
 
 ### Added
 
-- First public npm release, published from CI with provenance.
+- First npm release attempt, published from CI with provenance.
 - Production release workflow: tag-triggered + manual dispatch, tag/version
   consistency check, and support for both automation-token and Trusted
   Publishing (OIDC) auth. See `RELEASING.md`.
@@ -56,6 +64,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - Zero-dependency implementation, tests on the built-in `node:test` runner,
   CI (Node 20/22/24) and npm release workflow with provenance.
 
+[0.2.2]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.2
 [0.2.1]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 # tokenmonitor
 
-[![npm version](https://img.shields.io/npm/v/tokenmonitor.svg)](https://www.npmjs.com/package/tokenmonitor)
+[![npm version](https://img.shields.io/npm/v/@louisnwadike/tokenmonitor.svg)](https://www.npmjs.com/package/@louisnwadike/tokenmonitor)
 [![CI](https://github.com/louisnwadike52-design/tokenmonitor/actions/workflows/ci.yml/badge.svg)](https://github.com/louisnwadike52-design/tokenmonitor/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
@@ -22,8 +22,11 @@ No API keys, no accounts, no telemetry, no network calls — it never leaves you
 ## Install
 
 ```sh
-npm install -g tokenmonitor   # or: npx tokenmonitor
+npm install -g @louisnwadike/tokenmonitor   # or: npx @louisnwadike/tokenmonitor
 ```
+
+The installed command is `tokenmonitor` (the package is published under an npm
+scope; the unscoped name collides with an unrelated existing package).
 
 From source (zero dependencies — there is nothing to `npm install`):
 
@@ -121,7 +124,7 @@ Optional per-entry fields: `cacheRead`, `cacheWrite5m`, `cacheWrite1h`.
 `tokenmonitor` is also a zero-dependency ES module:
 
 ```js
-import { collectUsage, aggregate, totalsOf } from "tokenmonitor";
+import { collectUsage, aggregate, totalsOf } from "@louisnwadike/tokenmonitor";
 
 const records = await collectUsage();               // priced usage records
 const daily = aggregate(records, { groupBy: "date" });
@@ -145,7 +148,6 @@ Adding support for a new AI CLI is a single ~80-line adapter file — see
 
 ## Roadmap
 
-- npm release (`npm i -g tokenmonitor`)
 - `--watch` live mode
 - More adapters: Cursor CLI, Copilot CLI, Aider
 - Per-request server-tool (web search) surcharges
