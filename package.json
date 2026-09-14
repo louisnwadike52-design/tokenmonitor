@@ -1,6 +1,6 @@
 {
   "name": "tokenmonitor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Track token usage and estimated spend across AI coding CLIs (Claude Code, Codex CLI, Gemini CLI) — 100% local, zero dependencies.",
   "keywords": [
     "ai",
