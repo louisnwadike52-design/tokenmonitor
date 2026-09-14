@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] - 2026-09-14
+
+### Fixed
+
+- **Pricing:** an unknown model sharing a prefix with a known one (for example
+  `o3-pro` vs `o3`, which are priced 10x apart) no longer inherits the known
+  model's price. A table entry now only applies when the remainder is a
+  date/version suffix; other unknown models resolve to `null` and render as `—`,
+  as the "no guesses" policy intends. Reported and fixed by @roy-tong (#3).
+- **Codex adapter:** usage is now derived by diffing the cumulative
+  `total_token_usage` between snapshots rather than summing per-request figures,
+  making it immune to duplicated `token_count` events (no double-counting) and
+  improving per-day attribution.
+
 ## [0.2.2] - 2026-09-14
 
 ### Changed
@@ -64,6 +78,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - Zero-dependency implementation, tests on the built-in `node:test` runner,
   CI (Node 20/22/24) and npm release workflow with provenance.
 
+[0.2.3]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.3
 [0.2.2]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.2
 [0.2.1]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/louisnwadike52-design/tokenmonitor/releases/tag/v0.2.0
